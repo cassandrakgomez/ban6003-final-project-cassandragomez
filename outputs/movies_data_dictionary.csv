@@ -1,0 +1,34 @@
+column_name,data_type,description,source,transformation_or_derivation,notes_or_concerns
+movieId,int64,MovieLens movie identifier,movies table,None (original column),Primary key of the ABT; identifier only
+tmdbId,int64,TMDB movie identifier,movies table,None (original column),Unique key used to join credits and keywords; identifier only
+imdb_id,object,IMDb movie identifier,movies table,None (original column),Identifier only
+title,object,Movie title as displayed or released,movies table,None (original column),"Can legitimately differ from original_title (e.g., translated titles); both kept; not a key"
+original_title,object,Title in the movie's original language,movies table,None (original column),Kept separately from title; not a key
+original_language,object,Original language code of the movie,movies table,None (original column),Candidate feature; most movies are 'en'
+release_date,object,Release date as text,movies table,None (original column),Stored as text; see release_date_dt for the datetime version
+runtime,float64,Runtime in minutes (raw),movies table,None (original column),Contains 0 values that mean not recorded; use runtime_clean
+budget,int64,Production budget in dollars (raw),movies table,None (original column),Many 0 values that mean not recorded; use budget_clean
+revenue,float64,Box office revenue in dollars (raw),movies table,None (original column),Many 0 values that mean not recorded; use revenue_clean
+popularity,float64,TMDB popularity score,movies table,None (original column),"Likely a snapshot from data collection, not from release time; descriptive context only, not the outcome"
+vote_average,float64,TMDB average vote,movies table,None (original column),Measures nearly the same thing as the outcome; excluded as a feature
+vote_count,float64,Number of TMDB votes,movies table,None (original column),"Descriptive context only, not the outcome"
+status,object,Release status of the movie,movies table,None (original column),Almost all 'Released'; 2 values missing
+genres_list,object,"All genres for the movie, separated by |",movies table,"Provided in the starter data, parsed from the raw genres field",Missing for about 0.4% of movies
+primary_genre,object,First-listed genre for the movie,movies table,"Provided in the starter data, derived from genres_list",Candidate feature; missing for about 0.4% of movies
+release_year,int64,Year the movie was released,movies table,"Provided in the starter data, derived from release_date",Candidate feature (release era)
+user_rating_mean,float64,Average user rating for the movie (primary outcome),ratings table,Mean of rating grouped by movieId,Only meaningful with at least 20 ratings; missing for the 57 movies with no ratings
+user_rating_count,float64,Number of user ratings for the movie,ratings table,Count of ratings grouped by movieId,"Measures participation in this sample, not total audience popularity; used for eligibility, not as a feature"
+user_rating_std,float64,Standard deviation of user ratings for the movie,ratings table,Std of rating grouped by movieId,Missing when a movie has only one rating; excluded as a feature because it is built from outcome data
+first_rating_date,datetime64[ns],Date of the earliest rating for the movie,ratings table,Min of rating_datetime grouped by movieId,Excluded as a feature because it is built from outcome data
+last_rating_date,datetime64[ns],Date of the latest rating for the movie,ratings table,Max of rating_datetime grouped by movieId,Excluded as a feature because it is built from outcome data
+director,object,Director name,credits table,Joined on tmdbId,Candidate feature; missing for about 0.3% of movies
+top_cast,object,"Top billed cast, separated by |",credits table,Joined on tmdbId,Candidate feature; missing for about 1% of movies
+keywords_list,object,"Theme keywords for the movie, separated by |",keywords table,Joined on tmdbId,Missing for about 8.4% of movies
+has_revenue,Int64,"1 if revenue is greater than 0, otherwise 0",movies table,Starter code: revenue > 0,Data-quality flag; not the outcome
+rating_target_eligible,bool,True if the movie has at least 20 ratings,ratings table,Starter code: user_rating_count >= 20,"Defines which movies can have the outcome: 1,300 of 9,082 movies"
+high_user_rating,Int64,"1 if user_rating_mean is at least 3.75, otherwise 0",ratings table,"Starter code: user_rating_mean >= 3.75, only when the movie is eligible",Binary version of the outcome; missing for movies with fewer than 20 ratings
+budget_clean,float64,Budget with 0 converted to missing,movies table,"My addition: budget.replace(0, NaN)","About 49% missing (4,443 movies); not imputed"
+revenue_clean,float64,Revenue with 0 converted to missing,movies table,"My addition: revenue.replace(0, NaN)","About 48% missing (4,322 movies); not imputed"
+runtime_clean,float64,Runtime with 0 converted to missing,movies table,"My addition: runtime.replace(0, NaN)",20 movies missing (about 0.2%)
+has_budget,Int64,"1 if a budget was recorded, otherwise 0",movies table,My addition: budget_clean is not missing,Data-quality flag
+release_date_dt,datetime64[ns],Release date as a datetime,movies table,My addition: pd.to_datetime(release_date),"All 9,082 values parsed successfully"
